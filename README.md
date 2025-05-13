@@ -21,7 +21,7 @@ This repository contains Terraform configurations to deploy a full-stack chatroo
 2. **Deploy infrastructure**
    ```bash
    terraform init
-   terraform apply 
+   terraform apply
    ```
 
 3. **Build & push the backend Docker image**
@@ -54,18 +54,18 @@ sekä CLI:n ymmärtämistä.
 
 Terraformilla on tähän projektiin tehty ns. proof-of-concept, jolla saatiin yllä olevista
 containereista backend-osio siirrettyä Elastic Container Registryn käytettäväksi, jolla
-Elastic Container Service voi skaalata tarvittaessa lisää kontteja pystyyn. Frontend 
+Elastic Container Service voi skaalata tarvittaessa lisää kontteja pystyyn. Frontend
 on tässä pystytetty huomattavasti halvemmalla ratkaisulla, S3:een. Pyyntöjen reitittäminen
 on delegoitu Cloudfrontille, joka tulee halvemmaksi verrattuna kontitettuun reitittäjään.
 
 ## 1) AWS CLI käyttökuntoon - Käyttöoikeudet
 
-Jotta Terraformin koodin saa ajettua onnistuneesti tarvitaan ensimmäisenä AWS-käyttäjä, 
-jolla on riittävät oikeudet. Suosittelen itse menemään principle of least privileges 
+Jotta Terraformin koodin saa ajettua onnistuneesti tarvitaan ensimmäisenä AWS-käyttäjä,
+jolla on riittävät oikeudet. Suosittelen itse menemään principle of least privileges
 reittiä. Tällöin, jos käyttäjän tiedot vuotavat jonnekin session aikana, voidaan tuhon
-määrä pyrkiä minimoimaan. 
+määrä pyrkiä minimoimaan.
 
-IAM Identity Centerissä tulee luoda uusi permission setti, jossa on seuraavat AWS-managed 
+IAM Identity Centerissä tulee luoda uusi permission setti, jossa on seuraavat AWS-managed
 policyt:
 ```
 AmazonEC2ContainerRegistryFullAccess
@@ -93,16 +93,16 @@ Lisäksi laitettu yksi Inline policy
 }
 ```
 
-Sen jälkeen luodaan uusi käyttäjä IAM Identity Center -> Users -> Add user. Käyttäjän 
-luonnin jälkeen IAM Identity Center -> AWS Accounts, mennään oman root käyttäjän luo 
-painetaan Assign users or groups, liitetään juuri luotu uusi käyttäjä ja permission 
-set yhteen. Uudelle käyttäjälle tulee myös tehdä MFA. Kaiken tämän jälkeen käyttäjää 
-voi alkaa käyttämään AWS CLI:llä. Käydään hakemassa AWS access portal URL IAM IC:n 
+Sen jälkeen luodaan uusi käyttäjä IAM Identity Center -> Users -> Add user. Käyttäjän
+luonnin jälkeen IAM Identity Center -> AWS Accounts, mennään oman root käyttäjän luo
+painetaan Assign users or groups, liitetään juuri luotu uusi käyttäjä ja permission
+set yhteen. Uudelle käyttäjälle tulee myös tehdä MFA. Kaiken tämän jälkeen käyttäjää
+voi alkaa käyttämään AWS CLI:llä. Käydään hakemassa AWS access portal URL IAM IC:n
 dashboardista.
 
 ## 2) AWS CLI käyttökuntoon - Sessionin aloitus
 
-Kirjaudutaan sisään terminaalissa 
+Kirjaudutaan sisään terminaalissa
 ```bash
 $ aws configure sso
 SSO session name (Recommended): esimerkkisession
@@ -112,8 +112,8 @@ SSO registration scopes [sso:account:access]: # registration scope defaulttina r
 Attempting to automatically open the SSO authorization page in your default browser.
 ```
 
-Tämän jälkeen kirjaudutaan selaimessa, jonka jälkeen jatkuu terminaalissa. Hakasuluissa 
-oleva teksti on, mitä täyttyy oletuksena jos antaa tyhjän rivin. Useampaan näistä voi 
+Tämän jälkeen kirjaudutaan selaimessa, jonka jälkeen jatkuu terminaalissa. Hakasuluissa
+oleva teksti on, mitä täyttyy oletuksena jos antaa tyhjän rivin. Useampaan näistä voi
 antaa oletusvastauksen.
 ```bash
 There are 2 AWS accounts available to you.
@@ -137,21 +137,21 @@ Testiä varten tehdään uusi hakemisto "terraforming".
 $ mkdir terraforming
 $ cd terraforming
 $ git clone https://github.com/p-lemonish/ecs-chatroom
-$ cd ecs-chatroom 
+$ cd ecs-chatroom
 $ terraform init
 $ terraform apply
 ```
 
-HUOM. tarvittaessa saattaa joutua muuttamaan `variables.tf` sisällöstä `bucket-name` 
+HUOM. tarvittaessa saattaa joutua muuttamaan `variables.tf` sisällöstä `bucket-name`
 uniikiksi. Ongelman huomaa kyllä, kun terraform ei voi luoda S3 buckettia.
 
-Kun terraformin kyselyyn vastaa "yes", alkaa se ajamaan koodissa määritettyä infraa 
+Kun terraformin kyselyyn vastaa "yes", alkaa se ajamaan koodissa määritettyä infraa
 pystyyn.
 
 Vielä viimeistä vaihetta varten tarvitaan muutama tieto AWS:ltä. Jotta dockerin kontti
 saadaan siirrettyä ECR:lle tarvitaan sen repositoryn osoite.
 
-## 3) ECR-repo-URL:n hakeminen
+## 4) ECR-repo-URL:n hakeminen
 
 Terraform on luonut ECR-repositorioksi oletuksena `chatroom-tf-backend`. Haetaan sen URI:
 
@@ -167,7 +167,7 @@ ECR_URI=$(aws ecr describe-repositories \
   --profile $AWS_PROFILE)
 ```
 
-## 4) Go-backendin rakentaminen ja pushaus ECR:ään
+## 5) Go-backendin rakentaminen ja pushaus ECR:ään
 
 ```bash
 git clone https://github.com/p-lemonish/chatroom-go
@@ -188,7 +188,7 @@ docker push $ECR_URI:latest
 cd ..
 ```
 
-## 5) React-frontend rakentaminen ja synkronointi S3:een
+## 6) React-frontend rakentaminen ja synkronointi S3:een
 
 ```bash
 git clone https://github.com/p-lemonish/chatroom-react
@@ -205,5 +205,5 @@ aws s3 sync ./dist \
 cd ..
 ```
 
-Ja nyt Cloudfrontin takana oleva URL (löytyy esim. consolesta) tulisi näyttää 
+Ja nyt Cloudfrontin takana oleva URL (löytyy esim. consolesta) tulisi näyttää
 chathuoneen sisällön ja sen tulisi myös toimia.
